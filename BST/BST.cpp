@@ -65,7 +65,7 @@ struct _TREENODE
 };
 
 //
-// Find function. Return nullptr on miss.
+// Find function. Returns nullptr on miss.
 //
 
 PTREENODE Find(PTREENODE Node, KEY Key)
@@ -91,7 +91,7 @@ PTREENODE Find(PTREENODE Node, KEY Key)
 }
 
 //
-// Insert function. Return nullptr on allocation
+// Insert function. Returns nullptr on allocation
 // failure, or a new node. Duplicates are ignored
 // and the existing node is returned instead.
 //
@@ -291,8 +291,8 @@ int main()
 
     //
     // Create the root node of the tree. Initialize the
-    // root key with the middle value of the key vector for
-    // good measure.
+    // root key with the middle value of the key vector
+    // for good measure.
     //
 
     auto MiddleKey{ Keys[Keys.size() / 2] };
@@ -321,7 +321,7 @@ int main()
     }
 
     //
-    // For good measure, swarch for a key that we know isn't there.
+    // For good measure, search for a key that we know isn't there.
     //
 
     std::cout << "Searching for a non-existent key.\n\n";
