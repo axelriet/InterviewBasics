@@ -18,11 +18,12 @@ Questions / Remarks:
 
 --*/
 
+#include <cassert>
+#include <deque>
+#include <iostream>
 #include <numeric>
 #include <random>
 #include <vector>
-#include <iostream>
-#include <list>
 
 //
 // Definitions.
@@ -46,12 +47,12 @@ struct _TREENODE
 
     virtual ~_TREENODE()
     {
-        if (Left)
+        if (Left != nullptr)
         {
             delete Left;
         }
 
-        if (Right)
+        if (Right != nullptr)
         {
             delete Right;
         }
@@ -208,32 +209,42 @@ void DFS_PostOrder(PTREENODE Node)
     std::cout << "        " << Node->Key << " \n";
 }
 
-void BFS_LevelOrderWorker(std::vector<PTREENODE>& CurrentLevel)
+void BFS_LevelOrderWorker(std::deque<PTREENODE>& Queue)
 {
-    std::vector<PTREENODE> LowerLevel;
+    size_t Nodes{ Queue.size() };
 
-    for (PTREENODE& Node : CurrentLevel)
+    assert(Nodes > 0);
+
+    //
+    // Consume the nodes at this level from the front
+    // of the queue, and add the nodes from the level
+    // below at the end of the same queue.
+    //
+
+    while (Nodes--)
     {
+        PTREENODE Node{ Queue.front() };
+
+        Queue.pop_front();
+
         std::cout << "        " << Node->Key << " \n";
 
-        if (Node->Left)
+        if (Node->Left != nullptr)
         {
-            LowerLevel.push_back(Node->Left);
+            Queue.push_back(Node->Left);
         }
 
-        if (Node->Right)
+        if (Node->Right != nullptr)
         {
-            LowerLevel.push_back(Node->Right);
+            Queue.push_back(Node->Right);
         }
     }
 
-    CurrentLevel.clear();
-
-    if (LowerLevel.size())
+    if (Queue.size() > 0)
     {
         std::cout << "     -------\n";
 
-        BFS_LevelOrderWorker(LowerLevel);
+        BFS_LevelOrderWorker(Queue);
     }
 }
 
@@ -244,11 +255,11 @@ void BFS_LevelOrder(PTREENODE Node)
         return;
     }
 
-    std::vector<PTREENODE> TopLevel;
+    std::deque<PTREENODE> Queue;
 
-    TopLevel.push_back(Node);
+    Queue.push_back(Node);
 
-    BFS_LevelOrderWorker(TopLevel);
+    BFS_LevelOrderWorker(Queue);
 }
 
 int main()
@@ -318,7 +329,7 @@ int main()
     Search(Root.get(), KEYS + 1);
 
     //
-    // Traversals
+    // Traversals.
     //
 
     std::cout << "\nVarious traversals.\n";
