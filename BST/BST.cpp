@@ -209,57 +209,65 @@ void DFS_PostOrder(PTREENODE Node)
     std::cout << "        " << Node->Key << " \n";
 }
 
-void BFS_LevelOrderWorker(std::deque<PTREENODE>& Queue)
+void BFS_LevelOrder(PTREENODE Root)
 {
-    size_t Nodes{ Queue.size() };
-
-    assert(Nodes > 0);
-
-    //
-    // Consume the nodes at this level from the front
-    // of the queue, and add the nodes from the level
-    // below at the end of the same queue.
-    //
-
-    while (Nodes--)
-    {
-        PTREENODE Node{ Queue.front() };
-
-        Queue.pop_front();
-
-        std::cout << "        " << Node->Key << " \n";
-
-        if (Node->Left != nullptr)
-        {
-            Queue.push_back(Node->Left);
-        }
-
-        if (Node->Right != nullptr)
-        {
-            Queue.push_back(Node->Right);
-        }
-    }
-
-    if (Queue.size() > 0)
-    {
-        std::cout << "     -------\n";
-
-        BFS_LevelOrderWorker(Queue);
-    }
-}
-
-void BFS_LevelOrder(PTREENODE Node)
-{
-    if (Node == nullptr)
+    if (Root == nullptr)
     {
         return;
     }
 
+    //
+    // Create a double-ended queue and append the
+    // root node.
+    //
+
     std::deque<PTREENODE> Queue;
 
-    Queue.push_back(Node);
+    Queue.push_back(Root);
 
-    BFS_LevelOrderWorker(Queue);
+    //
+    // Proceed level-by-level until the whole tree
+    // is exhausted.
+    //
+
+    while (Queue.size() > 0)
+    {
+        size_t NodesThisLevel{ Queue.size() };
+
+        //
+        // Consume the nodes at this level from the front
+        // of the queue, and add the nodes from the level
+        // below at the end of the same queue.
+        //
+
+        while (NodesThisLevel--)
+        {
+            PTREENODE Node{ Queue.front() };
+
+            Queue.pop_front();
+
+            std::cout << "        " << Node->Key << " \n";
+
+            if (Node->Left != nullptr)
+            {
+                Queue.push_back(Node->Left);
+            }
+
+            if (Node->Right != nullptr)
+            {
+                Queue.push_back(Node->Right);
+            }
+        }
+
+        //
+        // Optional: print a level separator if there is more.
+        //
+
+        if (Queue.size() > 0)
+        {
+            std::cout << "     -------\n";
+        }
+    }
 }
 
 int main()
