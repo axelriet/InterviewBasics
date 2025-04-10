@@ -298,10 +298,11 @@ int main()
     //
     // Create the root node of the tree. Initialize the
     // root key with the middle value of the key vector
-    // for good measure.
+    // for good measure. Note it's random in this test.
     //
 
     const KEY MiddleKey{ Keys[Keys.size() / 2] };
+
     auto Root{ std::make_unique<TREENODE>(MiddleKey) };
 
     //
