@@ -230,7 +230,7 @@ void BFS_LevelOrder(PTREENODE Root)
     // is exhausted.
     //
 
-    while (Queue.size() > 0)
+    do
     {
         size_t NodesThisLevel{ Queue.size() };
 
@@ -260,14 +260,12 @@ void BFS_LevelOrder(PTREENODE Root)
         }
 
         //
-        // Optional: print a level separator if there is more.
+        // Optional: print a level separator.
         //
 
-        if (Queue.size() > 0)
-        {
-            std::cout << "     -------\n";
-        }
+        std::cout << "     -------\n";
     }
+    while (Queue.size() > 0);
 }
 
 int main()
