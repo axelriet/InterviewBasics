@@ -301,7 +301,7 @@ int main()
     // for good measure.
     //
 
-    auto MiddleKey{ Keys[Keys.size() / 2] };
+    const KEY MiddleKey{ Keys[Keys.size() / 2] };
     auto Root{ std::make_unique<TREENODE>(MiddleKey) };
 
     //
