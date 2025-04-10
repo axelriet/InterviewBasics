@@ -209,11 +209,16 @@ void DFS_PostOrder(PTREENODE Node)
     std::cout << "        " << Node->Key << " \n";
 }
 
-void BFS_LevelOrder(PTREENODE Root)
+//
+// Traverse the tree in level order. Returns 'true' if
+// the whole tree was traversed, or 'false' otherwise.
+//
+
+bool BFS_LevelOrder(PTREENODE Root)
 {
     if (Root == nullptr)
     {
-        return;
+        return true;
     }
 
     //
@@ -221,51 +226,66 @@ void BFS_LevelOrder(PTREENODE Root)
     // root node.
     //
 
-    std::deque<PTREENODE> Queue;
-
-    Queue.push_back(Root);
-
-    //
-    // Proceed level-by-level until the whole tree
-    // is exhausted.
-    //
-
-    do
+    try
     {
-        size_t NodesThisLevel{ Queue.size() };
+        std::deque<PTREENODE> Queue;
+
+        Queue.push_back(Root);
 
         //
-        // Consume the nodes at this level from the front
-        // of the queue, and add the nodes from the level
-        // below at the end of the same queue.
+        // Proceed level-by-level until the whole tree
+        // is exhausted.
         //
 
-        while (NodesThisLevel--)
+        do
         {
-            PTREENODE Node{ Queue.front() };
+            size_t NodesThisLevel{ Queue.size() };
 
-            Queue.pop_front();
+            //
+            // Consume the nodes at this level from the front
+            // of the queue, and add the nodes from the level
+            // below at the end of the same queue.
+            //
 
-            std::cout << "        " << Node->Key << " \n";
-
-            if (Node->Left != nullptr)
+            while (NodesThisLevel--)
             {
-                Queue.push_back(Node->Left);
+                PTREENODE Node{ Queue.front() };
+
+                Queue.pop_front();
+
+                std::cout << "        " << Node->Key << " \n";
+
+                if (Node->Left != nullptr)
+                {
+                    Queue.push_back(Node->Left);
+                }
+
+                if (Node->Right != nullptr)
+                {
+                    Queue.push_back(Node->Right);
+                }
             }
 
-            if (Node->Right != nullptr)
-            {
-                Queue.push_back(Node->Right);
-            }
+            //
+            // Optional: print a level separator.
+            //
+
+            std::cout << "     -------\n";
         }
-
-        //
-        // Optional: print a level separator.
-        //
-
-        std::cout << "     -------\n";
+        while (Queue.size() > 0);
     }
-    while (Queue.size() > 0);
+    catch(const std::bad_alloc&)
+    {
+        //
+        // We ran out of memory adding to the queue,
+        // return false. This is not fatal as the
+        // caller can retry.
+        //
+
+        return false;
+    }
+
+    return true;
 }
 
 int main()
@@ -355,7 +375,12 @@ int main()
 
     std::cout << "\n    BFS LevelOrder.\n\n";
 
-    BFS_LevelOrder(Root.get());
+    bool Succeeded{ BFS_LevelOrder(Root.get()) };
+
+    if (!Succeeded)
+    {
+        std::cout << "\n    ---> BFS LevelOrder failed!!!\n";
+    }
 
     std::cout << "\nDone.\n";
 }
