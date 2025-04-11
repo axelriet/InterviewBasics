@@ -296,9 +296,9 @@ int main()
     // Create a vector with some keys in random order.
     //
 
-    constexpr size_t KEYS{ 16 };
+    constexpr size_t NUM_KEYS{ 16 };
 
-    std::vector<KEY> Keys(KEYS);
+    std::vector<KEY> Keys(NUM_KEYS);
     std::iota(Keys.begin(), Keys.end(), 1);
 
     std::random_device rd;
@@ -353,7 +353,7 @@ int main()
 
     std::cout << "Searching for a non-existent key.\n\n";
 
-    Search(Root.get(), KEYS + 1);
+    Search(Root.get(), NUM_KEYS + 1);
 
     //
     // Traversals.
