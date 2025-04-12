@@ -33,16 +33,10 @@ Questions / Remarks:
 // Definitions.
 //
 
-typedef union _MAXHEAP_HEADER
+typedef struct _MAXHEAP_HEADER
 {
-    struct _MAXHEAP_HEADER_COUNTERS
-    {
-        uint32_t CurrentCount;
-        uint32_t Capacity;
-    }
-    Counters;
-
-    uint64_t Packed;
+    uint32_t Count;
+    uint32_t Capacity;
 }
 MAXHEAP_HEADER, *PMAXHEAP_HEADER;
 
@@ -92,7 +86,7 @@ static void MaxHeapPrivate_BubbleDown(uint64_t* MaxHeap, uint32_t Index)
     // Bubble the element at MaxHeap[Index] down to its place.
     //
 
-    while (Index < Header.Counters.CurrentCount)
+    while (Index < Header.Count)
     {
         //
         // Child = (Index * 2);
@@ -105,12 +99,12 @@ static void MaxHeapPrivate_BubbleDown(uint64_t* MaxHeap, uint32_t Index)
         // that side.
         //
 
-        if ((Child < Header.Counters.CurrentCount) && (MaxHeap[Child + 1] > MaxHeap[Child]))
+        if ((Child < Header.Count) && (MaxHeap[Child + 1] > MaxHeap[Child]))
         {
             ++Child;
         }
 
-        if ((Child <= Header.Counters.CurrentCount) && (MaxHeap[Child] > MaxHeap[Index]))
+        if ((Child <= Header.Count) && (MaxHeap[Child] > MaxHeap[Index]))
         {
             std::swap(MaxHeap[Child], MaxHeap[Index]);
 
@@ -139,36 +133,36 @@ inline void MaxHeap_Init(uint64_t* MaxHeap, uint32_t Capacity)
 
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
-    Header.Counters.CurrentCount = 0;
-    Header.Counters.Capacity = Capacity;
+    Header.Count = 0;
+    Header.Capacity = Capacity;
 }
 
 inline uint32_t MaxHeap_Count(uint64_t* MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
-    return Header.Counters.CurrentCount;
+    return Header.Count;
 }
 
 inline uint32_t MaxHeap_Capacity(uint64_t* MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
-    return Header.Counters.Capacity;
+    return Header.Capacity;
 }
 
 inline bool MaxHeap_IsFull(uint64_t* MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
-    return Header.Counters.CurrentCount >= Header.Counters.Capacity;
+    return Header.Count >= Header.Capacity;
 }
 
 inline bool MaxHeap_IsEmpty(uint64_t* MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
-    return Header.Counters.CurrentCount == 0;
+    return Header.Count == 0;
 }
 
 inline bool MaxHeap_Push(uint64_t* MaxHeap, uint64_t Value)
@@ -185,13 +179,13 @@ inline bool MaxHeap_Push(uint64_t* MaxHeap, uint64_t Value)
     // at the end of the MaxHeap array.
     //
 
-    MaxHeap[++Header.Counters.CurrentCount] = Value;
+    MaxHeap[++Header.Count] = Value;
 
     //
     // Bubble the new key up to its true place in the heap.
     //
 
-    MaxHeapPrivate_BubbleUp(MaxHeap, Header.Counters.CurrentCount);
+    MaxHeapPrivate_BubbleUp(MaxHeap, Header.Count);
 
     return true;
 }
@@ -217,13 +211,13 @@ inline bool MaxHeap_Pop(uint64_t* MaxHeap, uint64_t* Value)
     // Copy the last element to the top position.
     //
 
-    MaxHeap[1] = MaxHeap[Header.Counters.CurrentCount];
+    MaxHeap[1] = MaxHeap[Header.Count];
 
     //
     // Reduce the element count.
     //
 
-    --Header.Counters.CurrentCount;
+    --Header.Count;
 
     //
     // Bubble the new root down to its true place.
