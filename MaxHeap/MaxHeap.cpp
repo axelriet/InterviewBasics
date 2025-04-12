@@ -318,6 +318,11 @@ int main()
     assert(MaxHeap_Peek(MaxHeap, &Value) == true);
     assert(Value == NUM_VALUES);
 
+    if (MaxHeap_Peek(MaxHeap, &Value) == true)
+    {
+        std::cout << "Maximum Value = " << Value << "\n\n";
+    }
+
     //
     // Pop all values, hopefully in decreasing order.
     //
