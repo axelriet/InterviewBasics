@@ -11,7 +11,7 @@ Abstract:
     See Sedgewick 4th Ed. p. 314ss. for a discussion
     about the flat array storage used here.
 
-    CAUTION: The array size must be Capacity + 1
+    CAUTION: The array size must be (Capacity + 1)
 
 Repo:
 
@@ -23,9 +23,6 @@ Questions / Remarks:
 
 --*/
 
-#include <iostream>
-#include <vector>
-#include <random>
 #include <numeric>
 #include <cassert>
 
@@ -40,20 +37,28 @@ typedef struct _MAXHEAP_HEADER
 }
 MAXHEAP_HEADER, *PMAXHEAP_HEADER;
 
-inline uint32_t MaxHeap_Count(uint64_t* MaxHeap);
+using MAXHEAP = uint64_t;
+using PMAXHEAP = uint64_t*;
+using KEY = uint64_t;
+using PKEY = uint64_t*;
+
+#define DECLARE_MAXHEAP(__Name__, __Capacity__) MAXHEAP __Name__[(__Capacity__) + 1]; \
+                                                MaxHeap_Init(__Name__, __Capacity__)
+
+inline uint32_t MaxHeap_Count(PMAXHEAP MaxHeap);
 
 //
 // Internal Helpers.
 //
 
-inline MAXHEAP_HEADER& MaxHeapPrivate_GetHeader(uint64_t* MaxHeap)
+inline MAXHEAP_HEADER& MaxHeapPrivate_GetHeader(PMAXHEAP MaxHeap)
 {
     assert(MaxHeap != nullptr);
 
     return *reinterpret_cast<PMAXHEAP_HEADER>(&MaxHeap[0]);
 }
 
-static void MaxHeapPrivate_BubbleUp(uint64_t* MaxHeap, uint32_t Index)
+static void MaxHeapPrivate_BubbleUp(PMAXHEAP MaxHeap, uint32_t Index)
 {
     assert(Index >= 1);
     assert(Index <= MaxHeap_Count(MaxHeap));
@@ -83,7 +88,7 @@ static void MaxHeapPrivate_BubbleUp(uint64_t* MaxHeap, uint32_t Index)
     }
 }
 
-static void MaxHeapPrivate_BubbleDown(uint64_t* MaxHeap, uint32_t Index)
+static void MaxHeapPrivate_BubbleDown(PMAXHEAP MaxHeap, uint32_t Index)
 {
     assert(Index >= 1);
 
@@ -128,12 +133,12 @@ static void MaxHeapPrivate_BubbleDown(uint64_t* MaxHeap, uint32_t Index)
 // MaxHeap API.
 //
 
-inline void MaxHeap_Init(uint64_t* MaxHeap, uint32_t Capacity)
+inline void MaxHeap_Init(PMAXHEAP MaxHeap, uint32_t Capacity)
 {
     //
     // Make sure the MaxHeap array has one extra element, as in:
     //
-    //     uint64_t MaxHeap[Capacity + 1];
+    //     MAXHEAP MaxHeap[Capacity + 1];
     //
     // This is crucially important as the array is 1-based!
     //
@@ -144,35 +149,35 @@ inline void MaxHeap_Init(uint64_t* MaxHeap, uint32_t Capacity)
     Header.Capacity = Capacity;
 }
 
-inline uint32_t MaxHeap_Count(uint64_t* MaxHeap)
+inline uint32_t MaxHeap_Count(PMAXHEAP MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
     return Header.Count;
 }
 
-inline uint32_t MaxHeap_Capacity(uint64_t* MaxHeap)
+inline uint32_t MaxHeap_Capacity(PMAXHEAP MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
     return Header.Capacity;
 }
 
-inline bool MaxHeap_IsFull(uint64_t* MaxHeap)
+inline bool MaxHeap_IsFull(PMAXHEAP MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
     return Header.Count >= Header.Capacity;
 }
 
-inline bool MaxHeap_IsEmpty(uint64_t* MaxHeap)
+inline bool MaxHeap_IsEmpty(PMAXHEAP MaxHeap)
 {
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
     return Header.Count == 0;
 }
 
-inline bool MaxHeap_Push(uint64_t* MaxHeap, uint64_t Value)
+inline bool MaxHeap_Push(PMAXHEAP MaxHeap, KEY Key)
 {
     if (MaxHeap_IsFull(MaxHeap) == true)
     {
@@ -186,7 +191,7 @@ inline bool MaxHeap_Push(uint64_t* MaxHeap, uint64_t Value)
     // at the end of the MaxHeap array.
     //
 
-    MaxHeap[++Header.Count] = Value;
+    MaxHeap[++Header.Count] = Key;
 
     //
     // Bubble the new key up to its true place in the heap.
@@ -197,11 +202,11 @@ inline bool MaxHeap_Push(uint64_t* MaxHeap, uint64_t Value)
     return true;
 }
 
-inline bool MaxHeap_Pop(uint64_t* MaxHeap, uint64_t* Value)
+inline bool MaxHeap_Pop(PMAXHEAP MaxHeap, PKEY Key)
 {
     if (MaxHeap_IsEmpty(MaxHeap) == true)
     {
-        *Value = 0;
+        *Key = 0;
 
         return false;
     }
@@ -212,7 +217,7 @@ inline bool MaxHeap_Pop(uint64_t* MaxHeap, uint64_t* Value)
     // Grab the maximal element.
     //
 
-    *Value = MaxHeap[1];
+    *Key = MaxHeap[1];
 
     //
     // Copy the last element to the top position.
@@ -235,11 +240,11 @@ inline bool MaxHeap_Pop(uint64_t* MaxHeap, uint64_t* Value)
     return true;
 }
 
-inline bool MaxHeap_Peek(uint64_t* MaxHeap, uint64_t* Value)
+inline bool MaxHeap_Peek(PMAXHEAP MaxHeap, PKEY Key)
 {
     if (MaxHeap_IsEmpty(MaxHeap) == true)
     {
-        *Value = 0;
+        *Key = 0;
 
         return false;
     }
@@ -248,10 +253,18 @@ inline bool MaxHeap_Peek(uint64_t* MaxHeap, uint64_t* Value)
     // Grab the maximal element.
     //
 
-    *Value = MaxHeap[1];
+    *Key = MaxHeap[1];
 
     return true;
 }
+
+//
+// Test/Demo.
+//
+
+#include <iostream>
+#include <vector>
+#include <random>
 
 int main()
 {
@@ -261,21 +274,21 @@ int main()
     // Create a vector with some values in random order.
     //
 
-    constexpr size_t NUM_VALUES{ 16 };
+    constexpr size_t NUM_KEYS{ 16 };
 
-    std::vector<uint64_t> Values(NUM_VALUES);
-    std::iota(Values.begin(), Values.end(), 1);
+    std::vector<KEY> Keys(NUM_KEYS);
+    std::iota(Keys.begin(), Keys.end(), 1);
 
     std::random_device rd;
     std::mt19937 rng(rd());
 
-    std::shuffle(Values.begin(), Values.end(), rng);
+    std::shuffle(Keys.begin(), Keys.end(), rng);
 
-    std::cout << "\nHere are the values for this run:\n\n";
+    std::cout << "\nHere are the keys for this run:\n\n";
 
-    for (const uint64_t& Value : Values)
+    for (const KEY& Key : Keys)
     {
-        std::cout << "    " << Value << " \n";
+        std::cout << "    " << Key << " \n";
     }
 
     std::cout << "\n";
@@ -292,35 +305,33 @@ int main()
     // elements, sorry :/
     //
 
-    uint64_t MaxHeap[NUM_VALUES + 1]; // CAUTION: 1-based therefore +1
-
-    MaxHeap_Init(MaxHeap, NUM_VALUES);
+    DECLARE_MAXHEAP(MaxHeap, NUM_KEYS);
 
     assert(MaxHeap_IsFull(MaxHeap) == false);
     assert(MaxHeap_IsEmpty(MaxHeap) == true);
     assert(MaxHeap_Count(MaxHeap) == 0);
-    assert(MaxHeap_Capacity(MaxHeap) == NUM_VALUES);
+    assert(MaxHeap_Capacity(MaxHeap) == NUM_KEYS);
 
     //
     // Push the randomly ordered values.
     //
 
-    for (const uint64_t& Value : Values)
+    for (const KEY& Key : Keys)
     {
-        MaxHeap_Push(MaxHeap, Value);
+        MaxHeap_Push(MaxHeap, Key);
     }
 
-    uint64_t Value;
+    KEY Key;
 
     assert(MaxHeap_IsFull(MaxHeap) == true);
     assert(MaxHeap_IsEmpty(MaxHeap) == false);
-    assert(MaxHeap_Count(MaxHeap) == NUM_VALUES);
-    assert(MaxHeap_Peek(MaxHeap, &Value) == true);
-    assert(Value == NUM_VALUES);
+    assert(MaxHeap_Count(MaxHeap) == NUM_KEYS);
+    assert(MaxHeap_Peek(MaxHeap, &Key) == true);
+    assert(Key == NUM_KEYS);
 
-    if (MaxHeap_Peek(MaxHeap, &Value) == true)
+    if (MaxHeap_Peek(MaxHeap, &Key) == true)
     {
-        std::cout << "Maximum Value = " << Value << "\n\n";
+        std::cout << "Maximum Key = " << Key << "\n\n";
     }
 
     //
@@ -329,22 +340,22 @@ int main()
 
     std::cout << "Popping all keys:\n\n";
 
-    for (size_t x = NUM_VALUES; x > 0; x--)
+    for (size_t x = NUM_KEYS; x > 0; x--)
     {
 
-        if (MaxHeap_Pop(MaxHeap, &Value) == false)
+        if (MaxHeap_Pop(MaxHeap, &Key) == false)
         {
             std::cout << "    ----> Error: the MaxHeap is unexpectedly empty! \n";
 
             break;
         }
 
-        std::cout << "    " << Value << " \n";
+        std::cout << "    " << Key << " \n";
 
-        assert(Value == x);
+        assert(Key == x);
     }
 
-    assert(MaxHeap_Pop(MaxHeap, &Value) == false);
+    assert(MaxHeap_Pop(MaxHeap, &Key) == false);
     assert(MaxHeap_IsFull(MaxHeap) == false);
     assert(MaxHeap_IsEmpty(MaxHeap) == true);
     assert(MaxHeap_Count(MaxHeap) == 0);
