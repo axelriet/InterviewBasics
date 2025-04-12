@@ -40,6 +40,8 @@ typedef struct _MAXHEAP_HEADER
 }
 MAXHEAP_HEADER, *PMAXHEAP_HEADER;
 
+inline uint32_t MaxHeap_Count(uint64_t* MaxHeap);
+
 //
 // Internal Helpers.
 //
@@ -53,6 +55,9 @@ inline MAXHEAP_HEADER& MaxHeapPrivate_GetHeader(uint64_t* MaxHeap)
 
 static void MaxHeapPrivate_BubbleUp(uint64_t* MaxHeap, uint32_t Index)
 {
+    assert(Index >= 1);
+    assert(Index <= MaxHeap_Count(MaxHeap));
+
     //
     // Bubble the element at MaxHeap[Index] up to its place.
     //
@@ -80,6 +85,8 @@ static void MaxHeapPrivate_BubbleUp(uint64_t* MaxHeap, uint32_t Index)
 
 static void MaxHeapPrivate_BubbleDown(uint64_t* MaxHeap, uint32_t Index)
 {
+    assert(Index >= 1);
+
     MAXHEAP_HEADER& Header{ MaxHeapPrivate_GetHeader(MaxHeap) };
 
     //
@@ -309,7 +316,7 @@ int main()
     assert(MaxHeap_IsEmpty(MaxHeap) == false);
     assert(MaxHeap_Count(MaxHeap) == NUM_VALUES);
     assert(MaxHeap_Peek(MaxHeap, &Value) == true);
-    assert(Value == NUM_KEYS);
+    assert(Value == NUM_VALUES);
 
     //
     // Pop all values, hopefully in decreasing order.
