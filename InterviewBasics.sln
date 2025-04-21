@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MaxHeap", "MaxHeap\MaxHeap.vcxproj", "{D793E1E1-3DC0-436F-8266-EBAB39ED8D9E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sudoku", "Sudoku\Sudoku.vcxproj", "{F48641EB-1165-42CF-94FF-ACD31B3824AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -49,6 +51,14 @@ Global
 		{D793E1E1-3DC0-436F-8266-EBAB39ED8D9E}.Release|x64.Build.0 = Release|x64
 		{D793E1E1-3DC0-436F-8266-EBAB39ED8D9E}.Release|x86.ActiveCfg = Release|Win32
 		{D793E1E1-3DC0-436F-8266-EBAB39ED8D9E}.Release|x86.Build.0 = Release|Win32
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Debug|x64.ActiveCfg = Debug|x64
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Debug|x64.Build.0 = Debug|x64
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Debug|x86.ActiveCfg = Debug|Win32
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Debug|x86.Build.0 = Debug|Win32
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Release|x64.ActiveCfg = Release|x64
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Release|x64.Build.0 = Release|x64
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Release|x86.ActiveCfg = Release|Win32
+		{F48641EB-1165-42CF-94FF-ACD31B3824AB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
