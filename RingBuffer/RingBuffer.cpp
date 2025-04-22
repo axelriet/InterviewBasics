@@ -60,7 +60,7 @@ size_t FreeSpaceRingBuffer(PRINGBUFFER RingBuffer)
     return (RingBuffer->Capacity - RingBuffer->WriteIndex + RingBuffer->ReadIndex);
 }
 
-inline bool CountRingBuffer(PRINGBUFFER RingBuffer)
+inline size_t CountRingBuffer(PRINGBUFFER RingBuffer)
 {
     return (RingBuffer->WriteIndex - RingBuffer->ReadIndex);
 }
@@ -122,7 +122,7 @@ int main()
 
     size_t Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n", 14);
 
-    if (Written != 14)
+    if (Written != 14 || CountRingBuffer(&RingBuffer) != 14)
     {
         std::cout << "Write error!\n";
     }
@@ -130,13 +130,8 @@ int main()
     uint8_t Byte;
     size_t Read{};
 
-    while (!IsEmptyRingBuffer(&RingBuffer))
+    while (ReadRingBuffer(&RingBuffer, &Byte, 1) == 1)
     {
-        if (ReadRingBuffer(&RingBuffer, &Byte, 1) != 1)
-        {
-            std::cout << "Read error!\n";
-        }
-
         std::cout << Byte;
     }
 
@@ -152,13 +147,8 @@ int main()
         std::cout << "Write error!\n";
     }
 
-    while (!IsEmptyRingBuffer(&RingBuffer))
+    while (ReadRingBuffer(&RingBuffer, &Byte, 1) == 1)
     {
-        if (ReadRingBuffer(&RingBuffer, &Byte, 1) != 1)
-        {
-            std::cout << "Read error!\n";
-        }
-
         std::cout << Byte;
     }
 
