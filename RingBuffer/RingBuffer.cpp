@@ -75,6 +75,30 @@ inline bool IsFullRingBuffer(PRINGBUFFER RingBuffer)
     return (FreeSpaceRingBuffer(RingBuffer) == 0);
 }
 
+size_t WriteByteRingBuffer(PRINGBUFFER RingBuffer, BYTE Data)
+{
+    if (IsFullRingBuffer(RingBuffer))
+    {
+        return 0;
+    }
+
+    RingBuffer->Buffer[RingBuffer->WriteIndex++ % RingBuffer->Capacity] = Data;
+
+    return 1;
+}
+
+size_t ReadByteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data)
+{
+    if (IsEmptyRingBuffer(RingBuffer))
+    {
+        return 0;
+    }
+
+    *Data = RingBuffer->Buffer[RingBuffer->ReadIndex++ % RingBuffer->Capacity];
+
+    return 1;
+}
+
 size_t WriteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data, size_t Size)
 {
     const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
@@ -193,6 +217,30 @@ int main()
     if (Result[0] != Result[1] || Result[0] != '*')
     {
         std::cout << "Read error!\n";
+    }
+
+    //
+    // Byte-by-byte
+    //
+
+    WriteByteRingBuffer(&RingBuffer, 'H');
+    WriteByteRingBuffer(&RingBuffer, 'e');
+    WriteByteRingBuffer(&RingBuffer, 'l');
+    WriteByteRingBuffer(&RingBuffer, 'l');
+    WriteByteRingBuffer(&RingBuffer, 'o');
+    WriteByteRingBuffer(&RingBuffer, ',');
+    WriteByteRingBuffer(&RingBuffer, ' ');
+    WriteByteRingBuffer(&RingBuffer, 'W');
+    WriteByteRingBuffer(&RingBuffer, 'o');
+    WriteByteRingBuffer(&RingBuffer, 'r');
+    WriteByteRingBuffer(&RingBuffer, 'l');
+    WriteByteRingBuffer(&RingBuffer, 'd');
+    WriteByteRingBuffer(&RingBuffer, '!');
+    WriteByteRingBuffer(&RingBuffer, '\n');
+
+    while (ReadByteRingBuffer(&RingBuffer, &Byte))
+    {
+        std::cout << Byte;
     }
 
     DestroyRingBuffer(&RingBuffer);
