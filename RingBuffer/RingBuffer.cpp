@@ -324,4 +324,6 @@ int main()
     }
 
     DestroyRingBuffer(&RingBuffer);
+
+    return 0;
 }
