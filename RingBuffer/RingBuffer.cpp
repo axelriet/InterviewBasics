@@ -55,7 +55,7 @@ void DestroyRingBuffer(PRINGBUFFER RingBuffer)
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 }
 
-size_t FreeSpaceRingBuffer(PRINGBUFFER RingBuffer)
+inline size_t FreeSpaceRingBuffer(PRINGBUFFER RingBuffer)
 {
     return (RingBuffer->Capacity - RingBuffer->WriteIndex + RingBuffer->ReadIndex);
 }
@@ -201,4 +201,3 @@ int main()
 
     DestroyRingBuffer(&RingBuffer);
 }
-
