@@ -96,13 +96,17 @@ size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 
     if (ToWrite <= WriteSlack)
     {
-        memcpy(&RingBuffer->Buffer[ClampedWriteindex],
+        memcpy(RingBuffer->Buffer + ClampedWriteindex,
                Data,
                ToWrite);
     }
     else
     {
-        memcpy(&RingBuffer->Buffer[ClampedWriteindex],
+        //
+        // Split the write across the buffer boundary.
+        //
+
+        memcpy(RingBuffer->Buffer + ClampedWriteindex,
                Data,
                WriteSlack);
 
@@ -139,13 +143,17 @@ size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
     if (ToRead <= ReadSlack)
     {
         memcpy(Data,
-               &RingBuffer->Buffer[ClampedReadindex],
+               RingBuffer->Buffer + ClampedReadindex,
                ToRead);
     }
     else
     {
+        //
+        // Split the read across the buffer boundary.
+        //
+
         memcpy(Data,
-               &RingBuffer->Buffer[ClampedReadindex],
+               RingBuffer->Buffer + ClampedReadindex,
                ReadSlack);
 
         memcpy(Data + ReadSlack,
@@ -164,7 +172,14 @@ int main()
 
     RINGBUFFER RingBuffer;
 
-    size_t Size = InitializeRingBuffer(&RingBuffer, 16);
+    //
+    // Note: the tests below depends on the
+    // capacity to be 15.
+    //
+
+    constexpr size_t CAPACITY{ 15 };
+
+    size_t Size = InitializeRingBuffer(&RingBuffer, CAPACITY);
 
     if (Size == 0)
     {
@@ -214,12 +229,12 @@ int main()
 
     Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n******", 20);
 
-    if (Written != 16)
+    if (Written != CAPACITY)
     {
         std::cout << "Write error!\n";
     }
 
-    if (CountRingBuffer(&RingBuffer) != 16)
+    if (CountRingBuffer(&RingBuffer) != CAPACITY)
     {
         std::cout << "Count error!\n";
     }
@@ -231,21 +246,21 @@ int main()
         std::cout << Result;
     }
 
-    if (CountRingBuffer(&RingBuffer) != 2)
+    if (CountRingBuffer(&RingBuffer) != 1)
     {
         std::cout << "Count error!\n";
     }
 
     //
-    // Two more bytes before empty.
+    // One more byte before empty.
     //
 
-    if (ReadRingBuffer(&RingBuffer, Result, 3) != 2)
+    if (ReadRingBuffer(&RingBuffer, Result, 100) != 1)
     {
         std::cout << "Read error!\n";
     }
 
-    if (Result[0] != Result[1] || Result[0] != '*')
+    if (Result[0] != '*')
     {
         std::cout << "Read error!\n";
     }
