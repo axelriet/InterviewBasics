@@ -77,34 +77,30 @@ inline bool IsFullRingBuffer(PRINGBUFFER RingBuffer)
 
 size_t WriteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data, size_t Size)
 {
-    //
-    // Slow version (byte-by-byte)
-    //
+    const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
 
-    const BYTE* Start{ Data };
+    size_t ToWrite{ std::min(FreeSpace, Size) };
 
-    while (!IsFullRingBuffer(RingBuffer) && Size--)
+    for (size_t Written = 0; Written < ToWrite; Written++)
     {
         RingBuffer->Buffer[RingBuffer->WriteIndex++ % RingBuffer->Capacity] = *(Data++);
     }
 
-    return Data - Start;
+    return ToWrite;
 }
 
 size_t ReadRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data, size_t Size)
 {
-    //
-    // Slow version (byte-by-byte)
-    //
+    const size_t OccupiedSpace{ CountRingBuffer(RingBuffer) };
 
-    const BYTE* Start{ Data };
+    size_t ToRead{ std::min(OccupiedSpace, Size) };
 
-    while (!IsEmptyRingBuffer(RingBuffer) && Size--)
+    for (size_t Read = 0; Read < ToRead; Read++)
     {
         *(Data++) = RingBuffer->Buffer[RingBuffer->ReadIndex++ % RingBuffer->Capacity];
     }
 
-    return Data - Start;
+    return ToRead;
 }
 
 int main()
