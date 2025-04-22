@@ -152,6 +152,53 @@ int main()
         std::cout << Byte;
     }
 
+    if (CountRingBuffer(&RingBuffer) != 0)
+    {
+        std::cout << "Count error!\n";
+    }
+
+    //
+    // Write overflow
+    //
+
+    Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n******", 20);
+
+    if (Written != 16)
+    {
+        std::cout << "Write error!\n";
+    }
+
+    if (CountRingBuffer(&RingBuffer) != 16)
+    {
+        std::cout << "Count error!\n";
+    }
+
+    BYTE Result[15]{};
+
+    if (ReadRingBuffer(&RingBuffer, Result, 14) == 14)
+    {
+        std::cout << Result;
+    }
+
+    if (CountRingBuffer(&RingBuffer) != 2)
+    {
+        std::cout << "Count error!\n";
+    }
+
+    //
+    // Two more bytes before empty.
+    //
+
+    if (ReadRingBuffer(&RingBuffer, Result, 3) != 2)
+    {
+        std::cout << "Read error!\n";
+    }
+
+    if (Result[0] != Result[1] || Result[0] != '*')
+    {
+        std::cout << "Read error!\n";
+    }
+
     DestroyRingBuffer(&RingBuffer);
 }
 
