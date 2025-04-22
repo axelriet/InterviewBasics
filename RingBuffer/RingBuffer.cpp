@@ -30,13 +30,12 @@ struct _RING_BUFFER
 
 using BYTE = uint8_t;
 using RINGBUFFER = struct _RING_BUFFER;
-using PRINGBUFFER = struct _RING_BUFFER*;
 
-size_t InitializeRingBuffer(PRINGBUFFER RingBuffer, size_t Capacity)
+size_t InitializeRingBuffer(RINGBUFFER* RingBuffer, size_t Capacity)
 {
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 
-    RingBuffer->Buffer = reinterpret_cast<uint8_t*>(calloc(Capacity, sizeof(BYTE)));
+    RingBuffer->Buffer = reinterpret_cast<uint8_t*>(malloc(Capacity));
 
     if (RingBuffer->Buffer == nullptr)
     {
@@ -48,34 +47,34 @@ size_t InitializeRingBuffer(PRINGBUFFER RingBuffer, size_t Capacity)
     return Capacity;
 }
 
-void DestroyRingBuffer(PRINGBUFFER RingBuffer)
+void DestroyRingBuffer(RINGBUFFER* RingBuffer)
 {
     free(RingBuffer->Buffer);
 
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 }
 
-inline size_t FreeSpaceRingBuffer(PRINGBUFFER RingBuffer)
+inline size_t FreeSpaceRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (RingBuffer->Capacity - RingBuffer->WriteIndex + RingBuffer->ReadIndex);
 }
 
-inline size_t CountRingBuffer(PRINGBUFFER RingBuffer)
+inline size_t CountRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (RingBuffer->WriteIndex - RingBuffer->ReadIndex);
 }
 
-inline bool IsEmptyRingBuffer(PRINGBUFFER RingBuffer)
+inline bool IsEmptyRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (CountRingBuffer(RingBuffer) == 0);
 }
 
-inline bool IsFullRingBuffer(PRINGBUFFER RingBuffer)
+inline bool IsFullRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (FreeSpaceRingBuffer(RingBuffer) == 0);
 }
 
-size_t WriteByteRingBuffer(PRINGBUFFER RingBuffer, BYTE Data)
+inline size_t WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
 {
     if (IsFullRingBuffer(RingBuffer))
     {
@@ -87,7 +86,37 @@ size_t WriteByteRingBuffer(PRINGBUFFER RingBuffer, BYTE Data)
     return 1;
 }
 
-size_t ReadByteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data)
+size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
+{
+    const size_t ClampedWriteindex{ RingBuffer->WriteIndex % RingBuffer->Capacity };
+    const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
+    const size_t WriteSlack{ RingBuffer->Capacity - ClampedWriteindex };
+
+    size_t ToWrite{ std::min(FreeSpace, Size) };
+
+    if (ToWrite <= WriteSlack)
+    {
+        memcpy(&RingBuffer->Buffer[ClampedWriteindex],
+               Data,
+               ToWrite);
+    }
+    else
+    {
+        memcpy(&RingBuffer->Buffer[ClampedWriteindex],
+               Data,
+               WriteSlack);
+
+        memcpy(RingBuffer->Buffer,
+               Data + WriteSlack,
+               ToWrite - WriteSlack);
+    }
+
+    RingBuffer->WriteIndex += ToWrite;
+
+    return ToWrite;
+}
+
+inline size_t ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
 {
     if (IsEmptyRingBuffer(RingBuffer))
     {
@@ -99,30 +128,32 @@ size_t ReadByteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data)
     return 1;
 }
 
-size_t WriteRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data, size_t Size)
+size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 {
-    const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
-
-    size_t ToWrite{ std::min(FreeSpace, Size) };
-
-    for (size_t Written = 0; Written < ToWrite; Written++)
-    {
-        RingBuffer->Buffer[RingBuffer->WriteIndex++ % RingBuffer->Capacity] = *(Data++);
-    }
-
-    return ToWrite;
-}
-
-size_t ReadRingBuffer(PRINGBUFFER RingBuffer, BYTE* Data, size_t Size)
-{
+    const size_t ClampedReadindex{ RingBuffer->ReadIndex % RingBuffer->Capacity };
     const size_t OccupiedSpace{ CountRingBuffer(RingBuffer) };
+    const size_t ReadSlack{ RingBuffer->Capacity - ClampedReadindex };
 
     size_t ToRead{ std::min(OccupiedSpace, Size) };
 
-    for (size_t Read = 0; Read < ToRead; Read++)
+    if (ToRead <= ReadSlack)
     {
-        *(Data++) = RingBuffer->Buffer[RingBuffer->ReadIndex++ % RingBuffer->Capacity];
+        memcpy(Data,
+               &RingBuffer->Buffer[ClampedReadindex],
+               ToRead);
     }
+    else
+    {
+        memcpy(Data,
+               &RingBuffer->Buffer[ClampedReadindex],
+               ReadSlack);
+
+        memcpy(Data + ReadSlack,
+               RingBuffer->Buffer,
+               ToRead - ReadSlack);
+    }
+
+    RingBuffer->ReadIndex += ToRead;
 
     return ToRead;
 }
@@ -239,6 +270,38 @@ int main()
     WriteByteRingBuffer(&RingBuffer, '\n');
 
     while (ReadByteRingBuffer(&RingBuffer, &Byte))
+    {
+        std::cout << Byte;
+    }
+
+    //
+    // More tests...
+    //
+
+    WriteByteRingBuffer(&RingBuffer, 'H');
+    WriteRingBuffer(&RingBuffer, (BYTE*)"el",  2);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"lo,", 3);
+    WriteByteRingBuffer(&RingBuffer, ' ');
+    WriteRingBuffer(&RingBuffer, (BYTE*)"Wo", 2);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"rld", 3);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"!", 1);
+    WriteByteRingBuffer(&RingBuffer, '\n');
+
+    while (ReadByteRingBuffer(&RingBuffer, &Byte))
+    {
+        std::cout << Byte;
+    }
+
+    WriteRingBuffer(&RingBuffer, (BYTE*)"He",  2);
+    WriteByteRingBuffer(&RingBuffer, 'l');
+    WriteRingBuffer(&RingBuffer, (BYTE*)"lo", 2);
+    WriteByteRingBuffer(&RingBuffer, ',');
+    WriteByteRingBuffer(&RingBuffer, ' ');
+    WriteRingBuffer(&RingBuffer, (BYTE*)"Wor", 3);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"l", 1);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"d!\n", 3);
+
+    while (ReadRingBuffer(&RingBuffer, &Byte, 1))
     {
         std::cout << Byte;
     }
