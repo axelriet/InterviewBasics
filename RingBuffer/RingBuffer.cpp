@@ -184,6 +184,8 @@ int main()
     if (Size == 0)
     {
         std::cout << "Could not initialize the ring buffer!\n";
+
+        return -1;
     }
 
     size_t Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n", 14);
