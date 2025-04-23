@@ -18,17 +18,20 @@ Questions / Remarks:
 
 --*/
 
-#include <iostream>
+#include <memory>
+#include <cstdint>
+#include <algorithm>
+
+using BYTE = uint8_t;
 
 struct _RING_BUFFER
 {
+    BYTE* Buffer;
+    size_t Capacity;
     size_t ReadIndex;
     size_t WriteIndex;
-    uint8_t* Buffer;
-    size_t Capacity;
 };
 
-using BYTE = uint8_t;
 using RINGBUFFER = struct _RING_BUFFER;
 
 size_t InitializeRingBuffer(RINGBUFFER* RingBuffer, size_t Capacity)
@@ -96,9 +99,9 @@ size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
         return 0;
     }
 
-    const size_t ClampedWriteindex{ RingBuffer->WriteIndex % RingBuffer->Capacity };
+    const size_t Index{ RingBuffer->WriteIndex % RingBuffer->Capacity };
     const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
-    const size_t WriteSlack{ RingBuffer->Capacity - ClampedWriteindex };
+    const size_t WriteSlack{ RingBuffer->Capacity - Index };
 
     size_t ToWrite{ std::min(FreeSpace, Size) };
 
@@ -109,7 +112,7 @@ size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 
     if (ToWrite <= WriteSlack)
     {
-        memcpy(RingBuffer->Buffer + ClampedWriteindex,
+        memcpy(RingBuffer->Buffer + Index,
                Data,
                ToWrite);
     }
@@ -119,7 +122,7 @@ size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
         // Split the write across the buffer boundary.
         //
 
-        memcpy(RingBuffer->Buffer + ClampedWriteindex,
+        memcpy(RingBuffer->Buffer + Index,
                Data,
                WriteSlack);
 
@@ -152,9 +155,9 @@ size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
         return 0;
     }
 
-    const size_t ClampedReadindex{ RingBuffer->ReadIndex % RingBuffer->Capacity };
+    const size_t Index{ RingBuffer->ReadIndex % RingBuffer->Capacity };
     const size_t Count{ CountRingBuffer(RingBuffer) };
-    const size_t ReadSlack{ RingBuffer->Capacity - ClampedReadindex };
+    const size_t ReadSlack{ RingBuffer->Capacity - Index };
 
     size_t ToRead{ std::min(Count, Size) };
 
@@ -166,7 +169,7 @@ size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
     if (ToRead <= ReadSlack)
     {
         memcpy(Data,
-               RingBuffer->Buffer + ClampedReadindex,
+               RingBuffer->Buffer + Index,
                ToRead);
     }
     else
@@ -176,7 +179,7 @@ size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
         //
 
         memcpy(Data,
-               RingBuffer->Buffer + ClampedReadindex,
+               RingBuffer->Buffer + Index,
                ReadSlack);
 
         memcpy(Data + ReadSlack,
@@ -188,6 +191,8 @@ size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 
     return ToRead;
 }
+
+#include <iostream>
 
 int main()
 {
