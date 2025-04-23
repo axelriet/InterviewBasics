@@ -35,14 +35,17 @@ size_t InitializeRingBuffer(RINGBUFFER* RingBuffer, size_t Capacity)
 {
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 
-    RingBuffer->Buffer = reinterpret_cast<uint8_t*>(malloc(Capacity));
-
-    if (RingBuffer->Buffer == nullptr)
+    if (Capacity > 0)
     {
-        return 0;
-    }
+        RingBuffer->Buffer = reinterpret_cast<uint8_t*>(malloc(Capacity));
 
-    RingBuffer->Capacity = Capacity;
+        if (RingBuffer->Buffer == nullptr)
+        {
+            return 0;
+        }
+
+        RingBuffer->Capacity = Capacity;
+    }
 
     return Capacity;
 }
@@ -54,14 +57,14 @@ void DestroyRingBuffer(RINGBUFFER* RingBuffer)
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 }
 
-inline size_t FreeSpaceRingBuffer(RINGBUFFER* RingBuffer)
-{
-    return (RingBuffer->Capacity - RingBuffer->WriteIndex + RingBuffer->ReadIndex);
-}
-
 inline size_t CountRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (RingBuffer->WriteIndex - RingBuffer->ReadIndex);
+}
+
+inline size_t FreeSpaceRingBuffer(RINGBUFFER* RingBuffer)
+{
+    return (RingBuffer->Capacity - CountRingBuffer(RingBuffer));
 }
 
 inline bool IsEmptyRingBuffer(RINGBUFFER* RingBuffer)
@@ -71,7 +74,7 @@ inline bool IsEmptyRingBuffer(RINGBUFFER* RingBuffer)
 
 inline bool IsFullRingBuffer(RINGBUFFER* RingBuffer)
 {
-    return (FreeSpaceRingBuffer(RingBuffer) == 0);
+    return (CountRingBuffer(RingBuffer) == RingBuffer->Capacity);
 }
 
 inline size_t WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
@@ -88,11 +91,21 @@ inline size_t WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
 
 size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 {
+    if (RingBuffer->Capacity == 0)
+    {
+        return 0;
+    }
+
     const size_t ClampedWriteindex{ RingBuffer->WriteIndex % RingBuffer->Capacity };
     const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
     const size_t WriteSlack{ RingBuffer->Capacity - ClampedWriteindex };
 
     size_t ToWrite{ std::min(FreeSpace, Size) };
+
+    if (ToWrite == 0)
+    {
+        return 0;
+    }
 
     if (ToWrite <= WriteSlack)
     {
@@ -134,11 +147,21 @@ inline size_t ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
 
 size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
 {
+    if (RingBuffer->Capacity == 0)
+    {
+        return 0;
+    }
+
     const size_t ClampedReadindex{ RingBuffer->ReadIndex % RingBuffer->Capacity };
-    const size_t OccupiedSpace{ CountRingBuffer(RingBuffer) };
+    const size_t Count{ CountRingBuffer(RingBuffer) };
     const size_t ReadSlack{ RingBuffer->Capacity - ClampedReadindex };
 
-    size_t ToRead{ std::min(OccupiedSpace, Size) };
+    size_t ToRead{ std::min(Count, Size) };
+
+    if (ToRead == 0)
+    {
+        return 0;
+    }
 
     if (ToRead <= ReadSlack)
     {
@@ -323,6 +346,17 @@ int main()
         std::cout << Byte;
     }
 
+    DestroyRingBuffer(&RingBuffer);
+
+    //
+    // Test idiot-proofing.
+    //
+
+    InitializeRingBuffer(&RingBuffer, 0);
+    WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!", 13);
+    WriteByteRingBuffer(&RingBuffer, '\n');
+    ReadByteRingBuffer(&RingBuffer, &Byte);
+    ReadRingBuffer(&RingBuffer, Result, 256);
     DestroyRingBuffer(&RingBuffer);
 
     return 0;
