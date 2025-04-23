@@ -23,24 +23,25 @@ Questions / Remarks:
 #include <algorithm>
 
 using BYTE = uint8_t;
+using SIZE_T = size_t;
 
 struct _RING_BUFFER
 {
     BYTE* Buffer;
-    size_t Capacity;
-    size_t ReadIndex;
-    size_t WriteIndex;
+    SIZE_T Capacity;
+    SIZE_T ReadIndex;
+    SIZE_T WriteIndex;
 };
 
 using RINGBUFFER = struct _RING_BUFFER;
 
-size_t InitializeRingBuffer(RINGBUFFER* RingBuffer, size_t Capacity)
+SIZE_T InitializeRingBuffer(RINGBUFFER* RingBuffer, SIZE_T Capacity)
 {
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 
     if (Capacity > 0)
     {
-        RingBuffer->Buffer = reinterpret_cast<uint8_t*>(malloc(Capacity));
+        RingBuffer->Buffer = reinterpret_cast<BYTE*>(malloc(Capacity));
 
         if (RingBuffer->Buffer == nullptr)
         {
@@ -60,12 +61,12 @@ void DestroyRingBuffer(RINGBUFFER* RingBuffer)
     memset(RingBuffer, 0, sizeof(RINGBUFFER));
 }
 
-inline size_t CountRingBuffer(RINGBUFFER* RingBuffer)
+inline SIZE_T CountRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (RingBuffer->WriteIndex - RingBuffer->ReadIndex);
 }
 
-inline size_t FreeSpaceRingBuffer(RINGBUFFER* RingBuffer)
+inline SIZE_T FreeSpaceRingBuffer(RINGBUFFER* RingBuffer)
 {
     return (RingBuffer->Capacity - CountRingBuffer(RingBuffer));
 }
@@ -80,7 +81,7 @@ inline bool IsFullRingBuffer(RINGBUFFER* RingBuffer)
     return (CountRingBuffer(RingBuffer) == RingBuffer->Capacity);
 }
 
-inline size_t WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
+inline SIZE_T WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
 {
     if (IsFullRingBuffer(RingBuffer))
     {
@@ -92,18 +93,18 @@ inline size_t WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
     return 1;
 }
 
-size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
+SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
 {
     if (RingBuffer->Capacity == 0)
     {
         return 0;
     }
 
-    const size_t Index{ RingBuffer->WriteIndex % RingBuffer->Capacity };
-    const size_t FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
-    const size_t WriteSlack{ RingBuffer->Capacity - Index };
+    const SIZE_T Index{ RingBuffer->WriteIndex % RingBuffer->Capacity };
+    const SIZE_T FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
+    const SIZE_T WriteSlack{ RingBuffer->Capacity - Index };
 
-    size_t ToWrite{ std::min(FreeSpace, Size) };
+    SIZE_T ToWrite{ std::min(FreeSpace, Size) };
 
     if (ToWrite == 0)
     {
@@ -136,7 +137,7 @@ size_t WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
     return ToWrite;
 }
 
-inline size_t ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
+inline SIZE_T ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
 {
     if (IsEmptyRingBuffer(RingBuffer))
     {
@@ -148,18 +149,18 @@ inline size_t ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
     return 1;
 }
 
-size_t ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, size_t Size)
+SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
 {
     if (RingBuffer->Capacity == 0)
     {
         return 0;
     }
 
-    const size_t Index{ RingBuffer->ReadIndex % RingBuffer->Capacity };
-    const size_t Count{ CountRingBuffer(RingBuffer) };
-    const size_t ReadSlack{ RingBuffer->Capacity - Index };
+    const SIZE_T Index{ RingBuffer->ReadIndex % RingBuffer->Capacity };
+    const SIZE_T Count{ CountRingBuffer(RingBuffer) };
+    const SIZE_T ReadSlack{ RingBuffer->Capacity - Index };
 
-    size_t ToRead{ std::min(Count, Size) };
+    SIZE_T ToRead{ std::min(Count, Size) };
 
     if (ToRead == 0)
     {
@@ -205,9 +206,9 @@ int main()
     // capacity to be 15.
     //
 
-    constexpr size_t CAPACITY{ 15 };
+    constexpr SIZE_T CAPACITY{ 15 };
 
-    size_t Size = InitializeRingBuffer(&RingBuffer, CAPACITY);
+    SIZE_T Size = InitializeRingBuffer(&RingBuffer, CAPACITY);
 
     if (Size == 0)
     {
@@ -216,15 +217,15 @@ int main()
         return -1;
     }
 
-    size_t Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n", 14);
+    SIZE_T Written  = WriteRingBuffer(&RingBuffer, (BYTE*)"Hello, World!\n", 14);
 
     if (Written != 14 || CountRingBuffer(&RingBuffer) != 14)
     {
         std::cout << "Write error!\n";
     }
 
-    uint8_t Byte;
-    size_t Read{};
+    BYTE Byte;
+    SIZE_T Read{};
 
     while (ReadRingBuffer(&RingBuffer, &Byte, 1) == 1)
     {
