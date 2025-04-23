@@ -101,17 +101,17 @@ SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
     }
 
     const SIZE_T Index{ RingBuffer->WriteIndex % RingBuffer->Capacity };
-    const SIZE_T FreeSpace{ FreeSpaceRingBuffer(RingBuffer) };
-    const SIZE_T WriteSlack{ RingBuffer->Capacity - Index };
+    const SIZE_T Slack{ RingBuffer->Capacity - Index };
+    const SIZE_T Space{ FreeSpaceRingBuffer(RingBuffer) };
 
-    SIZE_T ToWrite{ std::min(FreeSpace, Size) };
+    SIZE_T ToWrite{ std::min(Space, Size) };
 
     if (ToWrite == 0)
     {
         return 0;
     }
 
-    if (ToWrite <= WriteSlack)
+    if (ToWrite <= Slack)
     {
         memcpy(RingBuffer->Buffer + Index,
                Data,
@@ -125,11 +125,11 @@ SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
 
         memcpy(RingBuffer->Buffer + Index,
                Data,
-               WriteSlack);
+               Slack);
 
         memcpy(RingBuffer->Buffer,
-               Data + WriteSlack,
-               ToWrite - WriteSlack);
+               Data + Slack,
+               ToWrite - Slack);
     }
 
     RingBuffer->WriteIndex += ToWrite;
@@ -157,8 +157,8 @@ SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
     }
 
     const SIZE_T Index{ RingBuffer->ReadIndex % RingBuffer->Capacity };
+    const SIZE_T Slack{ RingBuffer->Capacity - Index };
     const SIZE_T Count{ CountRingBuffer(RingBuffer) };
-    const SIZE_T ReadSlack{ RingBuffer->Capacity - Index };
 
     SIZE_T ToRead{ std::min(Count, Size) };
 
@@ -167,7 +167,7 @@ SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
         return 0;
     }
 
-    if (ToRead <= ReadSlack)
+    if (ToRead <= Slack)
     {
         memcpy(Data,
                RingBuffer->Buffer + Index,
@@ -181,11 +181,11 @@ SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
 
         memcpy(Data,
                RingBuffer->Buffer + Index,
-               ReadSlack);
+               Slack);
 
-        memcpy(Data + ReadSlack,
+        memcpy(Data + Slack,
                RingBuffer->Buffer,
-               ToRead - ReadSlack);
+               ToRead - Slack);
     }
 
     RingBuffer->ReadIndex += ToRead;
