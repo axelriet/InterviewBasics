@@ -41,7 +41,7 @@ SIZE_T InitializeRingBuffer(RINGBUFFER* RingBuffer, SIZE_T Capacity)
 
     if (Capacity > 0)
     {
-        RingBuffer->Buffer = reinterpret_cast<BYTE*>(malloc(Capacity));
+        RingBuffer->Buffer = static_cast<BYTE*>(malloc(Capacity));
 
         if (RingBuffer->Buffer == nullptr)
         {
@@ -104,7 +104,7 @@ SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
     const SIZE_T Slack{ RingBuffer->Capacity - Index };
     const SIZE_T Space{ FreeSpaceRingBuffer(RingBuffer) };
 
-    SIZE_T ToWrite{ std::min(Space, Size) };
+    const SIZE_T ToWrite{ std::min(Space, Size) };
 
     if (ToWrite == 0)
     {
@@ -160,7 +160,7 @@ SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
     const SIZE_T Slack{ RingBuffer->Capacity - Index };
     const SIZE_T Count{ CountRingBuffer(RingBuffer) };
 
-    SIZE_T ToRead{ std::min(Count, Size) };
+    const SIZE_T ToRead{ std::min(Count, Size) };
 
     if (ToRead == 0)
     {
