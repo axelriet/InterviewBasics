@@ -81,6 +81,13 @@ inline bool IsFullRingBuffer(RINGBUFFER* RingBuffer)
     return (CountRingBuffer(RingBuffer) == RingBuffer->Capacity);
 }
 
+inline SIZE_T WriteByteRingBufferUnchecked(RINGBUFFER* RingBuffer, BYTE Data)
+{
+    RingBuffer->Buffer[RingBuffer->WriteIndex++ % RingBuffer->Capacity] = Data;
+
+    return 1;
+}
+
 inline SIZE_T WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
 {
     if (IsFullRingBuffer(RingBuffer))
@@ -88,9 +95,7 @@ inline SIZE_T WriteByteRingBuffer(RINGBUFFER* RingBuffer, BYTE Data)
         return 0;
     }
 
-    RingBuffer->Buffer[RingBuffer->WriteIndex++ % RingBuffer->Capacity] = Data;
-
-    return 1;
+    return WriteByteRingBufferUnchecked(RingBuffer, Data);
 }
 
 SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
@@ -137,6 +142,13 @@ SIZE_T WriteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
     return ToWrite;
 }
 
+inline SIZE_T ReadByteRingBufferUnchecked(RINGBUFFER* RingBuffer, BYTE* Data)
+{
+    *Data = RingBuffer->Buffer[RingBuffer->ReadIndex++ % RingBuffer->Capacity];
+
+    return 1;
+}
+
 inline SIZE_T ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
 {
     if (IsEmptyRingBuffer(RingBuffer))
@@ -144,9 +156,7 @@ inline SIZE_T ReadByteRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data)
         return 0;
     }
 
-    *Data = RingBuffer->Buffer[RingBuffer->ReadIndex++ % RingBuffer->Capacity];
-
-    return 1;
+    return ReadByteRingBufferUnchecked(RingBuffer, Data);
 }
 
 SIZE_T ReadRingBuffer(RINGBUFFER* RingBuffer, BYTE* Data, SIZE_T Size)
