@@ -124,9 +124,9 @@ struct Graph
         }
     }
 
-    typedef bool (*WalkCallback)(const Vertex& Name, [[maybe_unused]] void* Context);
+    typedef bool (*WalkCallback)(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Context);
 
-    bool DfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, void* Context = nullptr)
+    bool DfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, unsigned int Distance = 0, void* Context = nullptr)
     {
         if (Visited.find(Name) != Visited.end())
         {
@@ -142,7 +142,7 @@ struct Graph
 
         if (Callback)
         {
-            if (!Callback(Name, Context))
+            if (!Callback(Name, Distance, Context))
             {
                 return true;
             }
@@ -154,7 +154,7 @@ struct Graph
         {
             for (Vertex neighbor : (*it).second)
             {
-                DfsWalkWorker(neighbor, ComponentSize, Callback, Context);
+                DfsWalkWorker(neighbor, ComponentSize, Callback, Distance + 1, Context);
             }
         }
 
@@ -170,10 +170,10 @@ struct Graph
             (*ComponentSize) = 0;
         }
 
-        return DfsWalkWorker(Name, ComponentSize, Callback, Context);
+        return DfsWalkWorker(Name, ComponentSize, Callback, 0, Context);
     }
 
-    bool BfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, void* Context = nullptr)
+    bool BfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, unsigned int Distance = 0, void* Context = nullptr)
     {
         if (Visited.find(Name) != Visited.end())
         {
@@ -182,14 +182,16 @@ struct Graph
 
         const size_t Initial{ Visited.size() };
 
-        std::deque<Vertex> Queue;
+        using Entry = std::pair<Vertex, unsigned int>; // <Vertex, DistanceFromOrigin>
+
+        std::deque<Entry> Queue;
 
         Visited.insert(Name);
-        Queue.push_back(Name);
+        Queue.push_back(Entry(Name, Distance));
 
         while (Queue.size())
         {
-            Vertex vertex{ Queue.front() };
+            auto entry{ Queue.front() };
 
             Queue.pop_front();
 
@@ -200,13 +202,13 @@ struct Graph
 
             if (Callback)
             {
-                if (!Callback(vertex, Context))
+                if (!Callback(entry.first, entry.second, Context))
                 {
                     break;
                 }
             }
 
-            auto it = Neighbors.find(vertex);
+            auto it = Neighbors.find(entry.first);
 
             if (it != Neighbors.end())
             {
@@ -215,7 +217,7 @@ struct Graph
                     if (Visited.find(neighbor) == Visited.end())
                     {
                         Visited.insert(neighbor);
-                        Queue.push_back(neighbor);
+                        Queue.push_back(Entry(neighbor, entry.second + 1));
                     }
                 }
             }
@@ -224,7 +226,7 @@ struct Graph
         return (Visited.size() > Initial);
     }
 
-    bool BfsWalk(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr)
+    bool BfsWalk(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, void* Context = nullptr)
     {
         PreWalk();
 
@@ -233,14 +235,14 @@ struct Graph
             (*ComponentSize) = 0;
         }
 
-        return BfsWalkWorker(Name, ComponentSize, Callback);
+        return BfsWalkWorker(Name, ComponentSize, Callback, 0, Context);
     }
 
     unsigned int ConnectedComponents(unsigned int& SmallestComponent, unsigned int& LargestComponent)
     {
         PreWalk();
 
-        unsigned componentCount{ 0 };
+        unsigned int componentCount{ 0 };
 
         LargestComponent = 0;
         SmallestComponent = UINT_MAX;
@@ -259,6 +261,40 @@ struct Graph
         }
 
         return componentCount;
+    }
+
+    struct ShortestDistanceContext
+    {
+        const Vertex& To;
+        unsigned int Distance;
+    };
+
+    static bool ShortestDistanceCallback(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Ctx)
+    {
+        ShortestDistanceContext* Context{ static_cast<ShortestDistanceContext*>(Ctx) };
+
+        if (Name == Context->To)
+        {
+            Context->Distance = Distance;
+
+            return false;
+        }
+
+        return true; // Continue walk
+    }
+
+    unsigned int ShortestDistance(const Vertex& From, const Vertex& To)
+    {
+        if (From == To)
+        {
+            return 0;
+        }
+
+        ShortestDistanceContext Context{ To };
+
+        BfsWalk(From, nullptr, ShortestDistanceCallback, &Context);
+
+        return Context.Distance;
     }
 };
 
@@ -299,7 +335,7 @@ void DumpAdjacencyList(Graph& g)
     std::cout << "\n";
 }
 
-bool PrintVertex(const Vertex& Name, [[maybe_unused]] void* Context)
+bool PrintVertex(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Context)
 {
     std::cout << Name << "\n";
 
@@ -338,8 +374,10 @@ int main()
     g.AddUndirectedEdge("w", "x");
     g.AddUndirectedEdge("x", "y");
     g.AddUndirectedEdge("z", "y");
-    g.AddUndirectedEdge("z", "v");
+    g.AddUndirectedEdge("u", "v");
+    g.AddUndirectedEdge("z", "u");
     g.AddUndirectedEdge("w", "v");
+    g.AddUndirectedEdge("w", "y");
 
     DumpAdjacencyList(g);
 
@@ -359,6 +397,8 @@ int main()
     std::cout << "\nBFS walk:\n\n";
 
     g.BfsWalk("w", nullptr, PrintVertex);
+
+    std::cout << "\nShortest distance from 'w' to 'z' : " << g.ShortestDistance("w", "z") << "\n";
 
     return (0);
 }
