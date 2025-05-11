@@ -124,9 +124,9 @@ struct Graph
         }
     }
 
-    typedef bool (*WalkCallback)(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Context);
+    typedef bool (*WalkCallback)(const Vertex& Name, [[maybe_unused]] int Distance, [[maybe_unused]] void* Context);
 
-    bool DfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, unsigned int Distance = 0, void* Context = nullptr)
+    bool DfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, int Distance = 0, void* Context = nullptr)
     {
         if (Visited.find(Name) != Visited.end())
         {
@@ -173,7 +173,7 @@ struct Graph
         return DfsWalkWorker(Name, ComponentSize, Callback, 0, Context);
     }
 
-    bool BfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, unsigned int Distance = 0, void* Context = nullptr)
+    bool BfsWalkWorker(Vertex Name, unsigned int* ComponentSize = nullptr, WalkCallback Callback = nullptr, int Distance = 0, void* Context = nullptr)
     {
         if (Visited.find(Name) != Visited.end())
         {
@@ -182,7 +182,7 @@ struct Graph
 
         const size_t Initial{ Visited.size() };
 
-        using Entry = std::pair<Vertex, unsigned int>; // <Vertex, DistanceFromOrigin>
+        using Entry = std::pair<Vertex, int>; // <Vertex, DistanceFromOrigin>
 
         std::deque<Entry> Queue;
 
@@ -263,15 +263,15 @@ struct Graph
         return componentCount;
     }
 
-    struct ShortestDistanceContext
+    struct DistanceContext
     {
         const Vertex& To;
         int Distance;
     };
 
-    static bool ShortestDistanceCallback(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Ctx)
+    static bool DistanceCallback(const Vertex& Name, [[maybe_unused]] int Distance, [[maybe_unused]] void* Ctx)
     {
-        ShortestDistanceContext* Context{ static_cast<ShortestDistanceContext*>(Ctx) };
+        DistanceContext* Context{ static_cast<DistanceContext*>(Ctx) };
 
         if (Name == Context->To)
         {
@@ -290,9 +290,9 @@ struct Graph
             return 0;
         }
 
-        ShortestDistanceContext Context{ To, -1 };
+        DistanceContext Context{ To, -1 };
 
-        BfsWalk(From, nullptr, ShortestDistanceCallback, &Context);
+        BfsWalk(From, nullptr, DistanceCallback, &Context);
 
         return Context.Distance; // -1 when no path was found
     }
@@ -335,7 +335,7 @@ void DumpAdjacencyList(Graph& g)
     std::cout << "\n";
 }
 
-bool PrintVertex(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Context)
+bool PrintVertex(const Vertex& Name, [[maybe_unused]] int Distance, [[maybe_unused]] void* Context)
 {
     std::cout << Name << "\n";
 
