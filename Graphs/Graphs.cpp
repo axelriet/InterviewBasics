@@ -266,7 +266,7 @@ struct Graph
     struct ShortestDistanceContext
     {
         const Vertex& To;
-        unsigned int Distance;
+        int Distance;
     };
 
     static bool ShortestDistanceCallback(const Vertex& Name, [[maybe_unused]] unsigned int Distance, [[maybe_unused]] void* Ctx)
@@ -283,18 +283,18 @@ struct Graph
         return true; // Continue walk
     }
 
-    unsigned int ShortestDistance(const Vertex& From, const Vertex& To)
+    int ShortestDistance(const Vertex& From, const Vertex& To)
     {
         if (From == To)
         {
             return 0;
         }
 
-        ShortestDistanceContext Context{ To };
+        ShortestDistanceContext Context{ To, -1 };
 
         BfsWalk(From, nullptr, ShortestDistanceCallback, &Context);
 
-        return Context.Distance;
+        return Context.Distance; // -1 when no path was found
     }
 };
 
