@@ -41,6 +41,17 @@ SIZE_T InitializeRingBuffer(RINGBUFFER* RingBuffer, SIZE_T Capacity)
 
     if (Capacity > 0)
     {
+        //
+        // Allocate space for the buffer. Note that the ring buffer functions
+        // do not mandate allocating the storage here. You could just as well
+        // declare a RINGBUFFER struct, zero it, and make Buffer point to any 
+        // memory location of your choosing. Initialize the "Capacity" member
+        // to the proper value and you are good to go! In this case, there is
+        // no need to call this initialization function at all, and of course
+        // neither the DestroyRingBuffer() function! Welcome to the beauty of
+        // the C Programming Language.
+        //
+
         RingBuffer->Buffer = static_cast<BYTE*>(malloc(Capacity));
 
         if (RingBuffer->Buffer == nullptr)

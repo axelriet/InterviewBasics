@@ -28,7 +28,7 @@ uint64_t fib_recursive(uint64_t n)
 
     //
     // The Fibonacci sequence starts with 1, 1, 2, 3... so the first
-    // two elements are 1 and 1. Take this into accound and return.
+    // two elements are 1 and 1. Take this into account and return.
     //
 
     if (n <= 2)
@@ -59,7 +59,7 @@ uint64_t fib_memoized(uint64_t n, memo_t& memo)
 
     //
     // The Fibonacci sequence starts with 1, 1, 2, 3... so the first
-    // two elements are 1 and 1. Take this into accound and return.
+    // two elements are 1 and 1. Take this into account and return.
     //
 
     if (n <= 2)
