@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{04026dd1-6cda-4efd-808e-e2f01874eba1}</ProjectGuid>
-    <RootNamespace>Fib</RootNamespace>
+    <ProjectGuid>{9835588b-9fb5-4101-bce9-8cd4ed8a0b6c}</ProjectGuid>
+    <RootNamespace>Graphs</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -115,8 +115,6 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding Condition="'$(UseDynamicDebugging)' != 'true'">true</EnableCOMDATFolding>
-      <OptimizeReferences Condition="'$(UseDynamicDebugging)' != 'true'">true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -149,13 +147,11 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding Condition="'$(UseDynamicDebugging)' != 'true'">true</EnableCOMDATFolding>
-      <OptimizeReferences Condition="'$(UseDynamicDebugging)' != 'true'">true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Fib.cpp" />
+    <ClCompile Include="Graphs.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -91,7 +91,7 @@ uint64_t fib_memoized(uint64_t n, memo_t& memo)
         const uint64_t fib{ fib_memoized(n - 1, memo) + fib_memoized(n - 2, memo) };
 
         //
-        // Store the result in out key-value memo.
+        // Store the result in our key-value memo.
         //
 
         memo.insert(memo_entry_t(n, fib));
@@ -125,7 +125,7 @@ int main()
     std::cout << "\nMemoized version: O(N); Space -> O(N)\n\n";
 
     //
-    // Iterate from START to END * 2 using the memoized variant.
+    // Iterate from START to (END * 2) using the memoized variant.
     //
 
     memo_t memo;
